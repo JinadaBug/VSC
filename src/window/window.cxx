@@ -13,13 +13,13 @@ namespace Window
     bool STATUS = false;
 
     // Window Flags
-    inline constexpr SDL_WindowFlags MetalFlag = (Platform::MacOS | Platform::IOS) ? SDL_WINDOW_METAL  : 0;
-    inline constexpr SDL_WindowFlags VulkanFlag = (Platform::Linux | Platform::Android | Platform::BSD) ? SDL_WINDOW_VULKAN : 0;
+    inline constexpr SDL_WindowFlags Window_Metal  = Target::Metal  ? SDL_WINDOW_METAL  : 0;
+    inline constexpr SDL_WindowFlags Window_Vulkan = Target::Vulkan ? SDL_WINDOW_VULKAN : 0;
     inline constexpr SDL_WindowFlags Flags = 
         SDL_WINDOW_HIDDEN |
         SDL_WINDOW_HIGH_PIXEL_DENSITY |
-        MetalFlag |
-        VulkanFlag;
+        Window_Metal |
+        Window_Vulkan;
 
     // Window Data
     const char*       Title      = "Game Engine Window";

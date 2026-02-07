@@ -4,24 +4,21 @@
 // Renderer
 #include "render.hxx"
 
+// Render Buffer
+#include "buffer/buffer.hxx"
+
+// Render Thread
+#include "thread/thread.hxx"
+
 // GPU API
-#include "dx12/dx12.hxx"
-#include "metal/metal.hxx"
-#include "vulkan/vulkan.hxx"
-#include "sdlgpu/sdlgpu.hxx"
+#include "api/dx12/dx12.hxx"
+#include "api/metal/metal.hxx"
+#include "api/vulkan/vulkan.hxx"
 
 namespace Render
 {
     // Module Status
     bool STATUS = false;
-
-    // Target API
-    inline constexpr bool Target_DX12   = Platform::Windows | Platform::Xbox;
-    inline constexpr bool Target_Metal  = Platform::MacOS   | Platform::IOS;
-    inline constexpr bool Target_Vulkan = Platform::Linux   | Platform::Android | Platform::BSD;
-
-    // Native API Status
-    bool NATIVE = true;
 
     // Init Render
     bool Init()
@@ -29,38 +26,16 @@ namespace Render
         // Check Module Status
         if (STATUS) return true;
 
-        // On DX12 Platforms
-        if constexpr(Target_DX12)
-        {
-            if (!DX12::Init())
-            {
-                DX12::Quit();
-                SDLGPU::Init();
-                NATIVE = false;
-            }
-        }
+        // Init Render API
+        if constexpr(Target::DX12)   if (!API::DX12::Init())   return false;
+        if constexpr(Target::Metal)  if (!API::Metal::Init())  return false;
+        if constexpr(Target::Vulkan) if (!API::Vulkan::Init()) return false;
 
-        // On Metal Platforms
-        if constexpr(Target_Metal)
-        {
-            if (!Metal::Init())
-            {
-                Metal::Quit();
-                SDLGPU::Init();
-                NATIVE = false;
-            }
-        }
+        // Init Render Buffer
+        if (!Buffer::Init()) return false;
 
-        // On Vulkan Platforms
-        if constexpr(Target_Vulkan)
-        {
-            if (!Vulkan::Init())
-            {
-                Vulkan::Quit();
-                SDLGPU::Init();
-                NATIVE = false;
-            }
-        }
+        // Init Render Thread
+        if (!Thread::Init()) return false;
 
         // Success
         STATUS = true;
@@ -73,17 +48,16 @@ namespace Render
         // Check Module Status
         if (!STATUS) return;
 
-        // Quit Fallback API
-        if (!NATIVE) SDLGPU::Quit();
+        // Quit Render Thread
+        Thread::Quit();
 
-        // Quit DX12
-        if constexpr(Target_DX12) DX12::Quit();
+        // Quit Render Buffer
+        Buffer::Quit();
 
-        // Quit Metal
-        if constexpr(Target_Metal) Metal::Quit();
-
-        // Quit Vulkan
-        if constexpr(Target_Vulkan) Vulkan::Quit();
+        // Quit Render API
+        if constexpr(Target::DX12)   API::DX12::Quit();
+        if constexpr(Target::Metal)  API::Metal::Quit();
+        if constexpr(Target::Vulkan) API::Vulkan::Quit();
 
         // Closure
         STATUS = false;

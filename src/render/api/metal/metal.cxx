@@ -1,25 +1,23 @@
-#include "vulkan.hxx"
+// Metal
+#include "metal.hxx"
 
-namespace Render::Vulkan
+namespace Render::API::Metal
 {
     // Module Status
     bool STATUS = false;
 
-    // Init Vulkan
+    // Init Metal
     bool Init()
     {
         // Check Module Status
         if (STATUS) return true;
-
-        // FUTURE TODO: DO STUFF!
-        return false;
 
         // Success
         STATUS = true;
         return true;
     }
 
-    // Quit Vulkan
+    // Quit Metal
     void Quit()
     {
         // Check Module Status
@@ -27,5 +25,10 @@ namespace Render::Vulkan
 
         // Closure
         STATUS = false;
+    }
+
+    // Draw Call
+    void Draw()
+    {
     }
 }

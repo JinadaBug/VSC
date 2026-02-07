@@ -1,25 +1,23 @@
-#include "dx12.hxx"
+// Render Buffer
+#include "buffer.hxx"
 
-namespace Render::DX12
+namespace Render::Buffer
 {
     // Module Status
     bool STATUS = false;
 
-    // Init DX12
+    // Init Render Buffer
     bool Init()
     {
         // Check Module Status
         if (STATUS) return true;
-
-        // FUTURE TODO: DO STUFF!
-        return false;
 
         // Success
         STATUS = true;
         return true;
     }
 
-    // Quit DX12
+    // Quit Render Buffer
     void Quit()
     {
         // Check Module Status

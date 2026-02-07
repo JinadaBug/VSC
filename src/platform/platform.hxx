@@ -59,3 +59,11 @@ namespace Platform
         false;
     #endif
 }
+
+namespace Target
+{
+    // Target API
+    inline constexpr bool DX12   = Platform::Windows | Platform::Xbox;
+    inline constexpr bool Metal  = Platform::MacOS   | Platform::IOS;
+    inline constexpr bool Vulkan = Platform::Linux   | Platform::Android | Platform::BSD;
+}
