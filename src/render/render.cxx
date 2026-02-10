@@ -1,6 +1,3 @@
-// Platform
-#include "platform/platform.hxx"
-
 // Renderer
 #include "render.hxx"
 
@@ -10,10 +7,8 @@
 // Render Thread
 #include "thread/thread.hxx"
 
-// GPU API
-#include "api/dx12/dx12.hxx"
-#include "api/metal/metal.hxx"
-#include "api/vulkan/vulkan.hxx"
+// Render API
+#include "sdlgpu/sdlgpu.hxx"
 
 namespace Render
 {
@@ -26,10 +21,8 @@ namespace Render
         // Check Module Status
         if (STATUS) return true;
 
-        // Init Render API
-        if constexpr(Target::DX12)   if (!API::DX12::Init())   return false;
-        if constexpr(Target::Metal)  if (!API::Metal::Init())  return false;
-        if constexpr(Target::Vulkan) if (!API::Vulkan::Init()) return false;
+        // Init SDL GPU
+        if (!SDLGPU::Init()) return false;
 
         // Init Render Buffer
         if (!Buffer::Init()) return false;
@@ -54,10 +47,8 @@ namespace Render
         // Quit Render Buffer
         Buffer::Quit();
 
-        // Quit Render API
-        if constexpr(Target::DX12)   API::DX12::Quit();
-        if constexpr(Target::Metal)  API::Metal::Quit();
-        if constexpr(Target::Vulkan) API::Vulkan::Quit();
+        // Quit SDL GPU
+        SDLGPU::Quit();
 
         // Closure
         STATUS = false;

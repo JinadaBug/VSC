@@ -4,7 +4,7 @@ I mostly try to create a game engine and need to keep track of the stuff for it.
 
 Engine development started back in August 2024, and currently I am focused on implementing these features in it:
 - Rollback
-- Modern 3D Pipeline (Bindless Textures, Dynamic Rendering)
+- Modern 3D Pipeline
 - Japanese style ECS architecture and efficiency
 - Modular approach
 - No inheritance at all
@@ -15,10 +15,7 @@ Engine development started back in August 2024, and currently I am focused on im
 Feel free to comment on my atrocity!
 
 Libraries used:
-- Vulkan 1.4
 - SDL3
-- Metal (Eventually it will be there)
-- DX12 (specifically I will use D3DX12.h helper to set that, need to target DX12.2)
 - ASIO standalone (For async networking)
 - CGLTF (For cooking assets)
 - CGLM (For vector math and matrix math)

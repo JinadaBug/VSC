@@ -1,9 +1,6 @@
 // SDL Video Module
 #include <SDL3/SDL_video.h>
 
-// Platform
-#include "platform/platform.hxx"
-
 // Window
 #include "window.hxx"
 
@@ -13,13 +10,7 @@ namespace Window
     bool STATUS = false;
 
     // Window Flags
-    inline constexpr SDL_WindowFlags Window_Metal  = Target::Metal  ? SDL_WINDOW_METAL  : 0;
-    inline constexpr SDL_WindowFlags Window_Vulkan = Target::Vulkan ? SDL_WINDOW_VULKAN : 0;
-    inline constexpr SDL_WindowFlags Flags = 
-        SDL_WINDOW_HIDDEN |
-        SDL_WINDOW_HIGH_PIXEL_DENSITY |
-        Window_Metal |
-        Window_Vulkan;
+    inline constexpr SDL_WindowFlags Flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
     // Window Data
     const char*       Title      = "Game Engine Window";
@@ -90,7 +81,7 @@ namespace Window
         if (!STATUS) return false;
 
         // Sync Window
-        return SDL_SyncWindow(Instance) ? true : false;
+        return SDL_SyncWindow(Instance);
     }
 
     // Show Window
@@ -100,7 +91,7 @@ namespace Window
         if (!STATUS) return false;
 
         // Show Window
-        return SDL_ShowWindow(Instance) ? true : false;
+        return SDL_ShowWindow(Instance);
     }
 
     // Hide Window
@@ -110,6 +101,6 @@ namespace Window
         if (!STATUS) return false;
 
         // Hide Window
-        return SDL_HideWindow(Instance) ? true : false;
+        return SDL_HideWindow(Instance);
     }
 }
