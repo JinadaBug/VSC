@@ -32,9 +32,13 @@ namespace Render::SDLGPU
     // Ready Flag
     std::atomic_bool Ready = false;
 
-    // Render Textures
-    std::atomic<SDL_GPUTexture*> Render_Target;
-    std::atomic<SDL_GPUTexture*> Depth_Stencil;
+    // Render Target Textures
+    std::atomic<SDL_GPUTexture*> Render_Target_Fetch;
+    std::atomic<SDL_GPUTexture*> Render_Target_Write;
+    std::atomic<SDL_GPUTexture*> Render_Target_Trade;
+
+    // Depth Stencil Texture
+    SDL_GPUTexture* Depth_Stencil;
 
     // Shader Format Flags
     inline constexpr SDL_GPUShaderFormat Flags = SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_MSL;
@@ -96,9 +100,15 @@ namespace Render::SDLGPU
         Render_Target_Info.layer_count_or_depth = 1;
         Render_Target_Info.num_levels           = 1;
 
-        // Create Render Target
-        Render_Target.store(SDL_CreateGPUTexture(Device, &Render_Target_Info), std::memory_order_release);
-        if (!Render_Target.load(std::memory_order_release))
+        // Create Render Target Textures
+        Render_Target_Fetch.store(SDL_CreateGPUTexture(Device, &Render_Target_Info), std::memory_order_release);
+        Render_Target_Write.store(SDL_CreateGPUTexture(Device, &Render_Target_Info), std::memory_order_release);
+        Render_Target_Trade.store(SDL_CreateGPUTexture(Device, &Render_Target_Info), std::memory_order_release);
+
+        // Validate Render Target Textures
+        if (!Render_Target_Fetch.load(std::memory_order_acquire) ||
+            !Render_Target_Write.load(std::memory_order_acquire) ||
+            !Render_Target_Trade.load(std::memory_order_acquire))
         {
             LOG("Render Target View Creation Failed");
             return false;
@@ -115,8 +125,8 @@ namespace Render::SDLGPU
         Depth_Stencil_Info.num_levels           = 1;
 
         // Create Depth Stencil
-        Depth_Stencil.store(SDL_CreateGPUTexture(Device, &Depth_Stencil_Info), std::memory_order_release);
-        if (!Depth_Stencil.load(std::memory_order_release))
+        Depth_Stencil = SDL_CreateGPUTexture(Device, &Depth_Stencil_Info);
+        if (!Depth_Stencil)
         {
             LOG("Depth Stencil View Creation Failed");
             return false;
@@ -135,6 +145,12 @@ namespace Render::SDLGPU
 
         // Clear Data
         Ready.store(false, std::memory_order_release);
+
+        // Release Textures
+        SDL_ReleaseGPUTexture(Device, Depth_Stencil);
+        SDL_ReleaseGPUTexture(Device, Render_Target_Fetch.load(std::memory_order_acquire));
+        SDL_ReleaseGPUTexture(Device, Render_Target_Write.load(std::memory_order_acquire));
+        SDL_ReleaseGPUTexture(Device, Render_Target_Trade.load(std::memory_order_acquire));
 
         // Release Window From GPU Device
         SDL_ReleaseWindowFromGPUDevice(Device, Window::Instance);
@@ -173,11 +189,14 @@ namespace Render::SDLGPU
             return false;
         }
 
+        // Swap Render Target View Buffer Textures
+        Render_Target_Fetch = Render_Target_Trade.exchange(Render_Target_Fetch, std::memory_order_acq_rel);
+
         // Copy Swapchain
         if (Swap_Texture)
         {
             SDL_GPUBlitRegion Internal = {};
-            Internal.texture           = Render_Target.load(std::memory_order_acquire);
+            Internal.texture           = Render_Target_Fetch.load(std::memory_order_acquire);
             Internal.w                 = Window::Width;
             Internal.h                 = Window::Height;
 
@@ -225,14 +244,14 @@ namespace Render::SDLGPU
 
         // Render Target Attachment
         SDL_GPUColorTargetInfo Color_Target_Info = {};
-        Color_Target_Info.texture     = Render_Target.load(std::memory_order_acquire);
+        Color_Target_Info.texture     = Render_Target_Write.load(std::memory_order_acquire);
         Color_Target_Info.clear_color = { 0.0f, 0.0f, 0.0f, 1.0f };
         Color_Target_Info.load_op     = SDL_GPU_LOADOP_CLEAR;
         Color_Target_Info.store_op    = SDL_GPU_STOREOP_STORE;
 
         // Depth Stencil Attachment
         SDL_GPUDepthStencilTargetInfo Depth_Target_Info = {};
-        Depth_Target_Info.texture          = Depth_Stencil.load(std::memory_order_acquire);
+        Depth_Target_Info.texture          = Depth_Stencil;
         Depth_Target_Info.clear_depth      = 1.0f;
         Depth_Target_Info.clear_stencil    = 0;
         Depth_Target_Info.load_op          = SDL_GPU_LOADOP_CLEAR;
@@ -256,7 +275,10 @@ namespace Render::SDLGPU
             return false;
         }
 
-        // Set Busy Flag - Textures Are Not Ready
+        // Swap Render Target View Buffer Textures
+        Render_Target_Write = Render_Target_Trade.exchange(Render_Target_Write, std::memory_order_acq_rel);
+
+        // Set Busy Flag - Textures Are Ready
         Ready.store(true, std::memory_order_release);
 
         // Success
