@@ -1,3 +1,6 @@
+// Logger
+#include "logger/logger.hxx"
+
 // SDL Callbacks API
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
@@ -36,7 +39,17 @@ SDL_AppResult SDL_AppEvent(void*, SDL_Event *event)
 // Iterate Logic
 SDL_AppResult SDL_AppIterate(void*)
 {
-    // Do Stuff
+    if (!Render::Peek())
+    {
+        LOG("Program Failure: Draw Call Level");
+        return SDL_APP_FAILURE;
+    }
+
+    if (!Render::Copy())
+    {
+        LOG("Program Failure: Swap Copy Level");
+        return SDL_APP_FAILURE;
+    }
 
     return SDL_APP_CONTINUE;
 }
@@ -44,6 +57,8 @@ SDL_AppResult SDL_AppIterate(void*)
 // Clean Resources
 void SDL_AppQuit(void*, SDL_AppResult result)
 {
+    if (result == SDL_APP_FAILURE) LOG("Program Failure");
+
     Window::Hide();
 
     Render::Quit();

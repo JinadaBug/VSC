@@ -1,5 +1,6 @@
 #pragma once
 
+// Render Thread Module
 namespace Render::Thread
 {
     // Init Render Thread: true on success, false on failure

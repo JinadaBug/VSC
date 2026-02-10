@@ -10,6 +10,7 @@
 // Render API
 #include "render/sdlgpu/sdlgpu.hxx"
 
+// Render Thread Module
 namespace Render::Thread
 {
     // Module Status
@@ -17,7 +18,14 @@ namespace Render::Thread
 
     // Render Thread Data
     std::thread      Thread;
+    std::atomic_bool Success = false;
     std::atomic_bool Running = false;
+
+    // Render Worker
+    void Work()
+    {
+        while (Running.load(std::memory_order_acquire)) Success.store(Render::SDLGPU::Draw(), std::memory_order_release);
+    }
 
     // Init Render Thread
     bool Init()
@@ -28,8 +36,8 @@ namespace Render::Thread
         // Init The Thread
         if (!Thread.joinable())
         {
-            Running.store(true, std::memory_order_relaxed);
-            Thread = std::thread(Render::SDLGPU::Draw);
+            Running.store(true, std::memory_order_release);
+            Thread = std::thread(Work);
         }
 
         // Success
@@ -46,7 +54,7 @@ namespace Render::Thread
         // Quit The Thread
         if (Thread.joinable())
         {
-            Running.store(false, std::memory_order_relaxed);
+            Running.store(false, std::memory_order_release);
             Thread.join();
         }
 

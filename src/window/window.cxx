@@ -1,3 +1,6 @@
+// Logger
+#include "logger/logger.hxx"
+
 // SDL Video Module
 #include <SDL3/SDL_video.h>
 
@@ -13,6 +16,8 @@ namespace Window
     inline constexpr SDL_WindowFlags Flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
     // Window Data
+    Uint32            Width      = 0;
+    Uint32            Height     = 0;
     const char*       Title      = "Game Engine Window";
     SDL_DisplayID     Display_ID = 0;
     SDL_DisplayMode*  Best_Mode  = nullptr;
@@ -28,25 +33,53 @@ namespace Window
 
         // Get Display ID
         Display_ID = SDL_GetPrimaryDisplay();
-        if (!Display_ID) return false;
+        if (!Display_ID)
+        {
+            LOG("Get Primary Display Failure");
+            return false;
+        }
 
         // Get Mode List
         Mode_List = SDL_GetFullscreenDisplayModes(Display_ID, &Mode_Count);
-        if (!Mode_List) return false;
+        if (!Mode_List)
+        {
+            LOG("Get Fullscreen Display Modes Failure");
+            return false;
+        }
 
         // Pick Best Mode
         Best_Mode = (Mode_List && Mode_Count > 0) ? Mode_List[0] : nullptr;
-        if (!Best_Mode) return false;
+        if (!Best_Mode)
+        {
+            LOG("No Best Mode Exists");
+            return false;
+        }
+
+        // Cache Resolution
+        Width = Best_Mode->w;
+        Height = Best_Mode->h;
 
         // Create Window Instance
-        Instance = SDL_CreateWindow(Title, Best_Mode->w, Best_Mode->h, Flags);
-        if (!Instance) return false;
+        Instance = SDL_CreateWindow(Title, Width, Height, Flags);
+        if (!Instance)
+        {
+            LOG("Window Creation Failure");
+            return false;
+        }
 
         // Set Window Fullscreen Mode
-        if (!SDL_SetWindowFullscreenMode(Instance, Best_Mode)) return false;
+        if (!SDL_SetWindowFullscreenMode(Instance, Best_Mode))
+        {
+            LOG("Set Window Mode Failure");
+            return false;
+        }
 
         // Set Window Fulscreen
-        if (!SDL_SetWindowFullscreen(Instance, true)) return false;
+        if (!SDL_SetWindowFullscreen(Instance, true))
+        {
+            LOG("Set Window Fullscreen Failure");
+            return false;
+        }
 
         // Success
         STATUS = true;
@@ -81,7 +114,10 @@ namespace Window
         if (!STATUS) return false;
 
         // Sync Window
-        return SDL_SyncWindow(Instance);
+        if (!SDL_SyncWindow(Instance)) return false;
+
+        // Success
+        return true;
     }
 
     // Show Window
@@ -91,7 +127,14 @@ namespace Window
         if (!STATUS) return false;
 
         // Show Window
-        return SDL_ShowWindow(Instance);
+        if (!SDL_ShowWindow(Instance))
+        {
+            LOG("Show Window Failure");
+            return false;
+        }
+
+        // Success
+        return true;
     }
 
     // Hide Window
@@ -101,6 +144,13 @@ namespace Window
         if (!STATUS) return false;
 
         // Hide Window
-        return SDL_HideWindow(Instance);
+        if (!SDL_HideWindow(Instance))
+        {
+            LOG("Hide Window Failure");
+            return false;
+        }
+
+        // Success
+        return true;
     }
 }

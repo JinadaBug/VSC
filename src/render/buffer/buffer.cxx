@@ -1,6 +1,7 @@
 // Render Buffer
 #include "buffer.hxx"
 
+// Render Buffer Module
 namespace Render::Buffer
 {
     // Module Status

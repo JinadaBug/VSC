@@ -1,3 +1,6 @@
+// Logger
+#include "logger/logger.hxx"
+
 // SDL Init Module
 #include <SDL3/SDL_init.h>
 
@@ -20,7 +23,11 @@ namespace System
         if (STATUS) return true;
 
         // Init Subsystems
-        if (!SDL_InitSubSystem(Flags)) return false;
+        if (!SDL_InitSubSystem(Flags))
+        {
+            LOG("SDL Init Subsystem Failed");
+            return false;
+        }
 
         // Success
         STATUS = true;

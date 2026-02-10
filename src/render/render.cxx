@@ -1,3 +1,6 @@
+// Atomic
+#include <atomic>
+
 // Renderer
 #include "render.hxx"
 
@@ -10,6 +13,12 @@
 // Render API
 #include "sdlgpu/sdlgpu.hxx"
 
+namespace Render::Thread
+{
+    extern std::atomic_bool Success;
+}
+
+// Render Module
 namespace Render
 {
     // Module Status
@@ -52,5 +61,25 @@ namespace Render
 
         // Closure
         STATUS = false;
+    }
+
+    // Peek Call
+    bool Peek()
+    {
+        // Check Module Status
+        if (!STATUS) return false;
+
+        // Check Render Thread Success
+        return Render::Thread::Success.load(std::memory_order_acquire);
+    }
+
+    // Copy Call
+    bool Copy()
+    {
+        // Check Module Status
+        if (!STATUS) return false;
+
+        // Copy Swapchain Texture
+        return Render::SDLGPU::Copy();
     }
 }

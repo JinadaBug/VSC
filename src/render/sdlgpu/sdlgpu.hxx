@@ -9,6 +9,9 @@ namespace Render::SDLGPU
     // Quit SDLGPU
     void Quit();
 
-    // Draw Call
-    void Draw();
+    // Copy Call: true on success, false on failure
+    bool Copy();
+
+    // Draw Call: true on success, false on failure
+    bool Draw();
 }
